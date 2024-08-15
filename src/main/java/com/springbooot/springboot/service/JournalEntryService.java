@@ -2,6 +2,7 @@ package com.springbooot.springboot.service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -30,13 +31,17 @@ public class JournalEntryService{
 		journalEntry.setDate(LocalDate.now());
 		JournalEntry je = journalEntryRepository.save(journalEntry);
 		
-		//Journal Saving in User
-		User user = userService.getUserByName(uname);
-		user.getJorunalEntries().add(je);
-		
-		//User Saving
-		userService.upsertUser(user);
-		return je;
+		// Fetch user and add the journal entry
+	    User user = userService.getUserByName(uname);
+	    if (user != null) {
+	        user.getJorunalEntries().add(je); 
+
+	        // Upsert user with updated journal entries
+	        userService.upsertUser(user);
+	    } else {
+	        throw new NoSuchElementException("User not found");
+	    }
+	    return je;
 	}
 	
 
@@ -69,11 +74,9 @@ public class JournalEntryService{
 
 	
 	//Updating from collection.................
-	public JournalEntry updateEntry(JournalEntry journalEntry, String id){
+	public JournalEntry updateEntry(JournalEntry journalEntry){
 			
-		JournalEntry jeu = journalEntryRepository.findById(id).orElse(null);
-		journalEntryRepository.deleteById(id);
-		System.out.println(jeu.toString());
+		JournalEntry jeu = journalEntryRepository.save(journalEntry);
 		return jeu;
 	}
 		

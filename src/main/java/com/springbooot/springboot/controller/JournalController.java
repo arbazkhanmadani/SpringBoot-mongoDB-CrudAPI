@@ -45,6 +45,12 @@ public class JournalController{
 	@DeleteMapping("/delete-entry/by-journalId/{jid}/{uname}")
 	public ResponseEntity deleteEntry(@PathVariable String jid, @PathVariable String uname){
 		
+		//getting user and deleting common entry.
+		User user = userService.getUserByName(uname);
+		user.getJorunalEntries().removeIf(x -> x.getId().equals(jid));
+		userService.insertUser(user);
+		
+		//Deleting entry in journal................
 		journalEntryService.deleteEntry(jid,uname);
 		return ResponseEntity.ok(HttpStatus.OK);
 	}
@@ -60,11 +66,13 @@ public class JournalController{
 			oldEntry.setTitle( newEntry.getTitle()!=null && !newEntry.getTitle().equals("") ? newEntry.getTitle() : oldEntry.getTitle() );
 			//If user only update the Content...
 			oldEntry.setContent( newEntry.getContent()!=null && !newEntry.getContent().equals("") ? newEntry.getContent(): oldEntry.getContent() );
-		
+			journalEntryService.updateEntry(oldEntry);
+			
+			return new ResponseEntity<JournalEntry>(oldEntry,HttpStatus.OK);
+					
 		}
-		journalEntryService.saveEntry(oldEntry);
 		
-		return new ResponseEntity<JournalEntry>(oldEntry,HttpStatus.OK);
+		return new ResponseEntity<JournalEntry>(HttpStatus.NOT_FOUND);
 	}
 	
 	
